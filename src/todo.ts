@@ -50,7 +50,21 @@ const addTodoItem = <List extends Todo[], Text extends string>(
   { id: maxId(list) as unknown as GenId<List>, text: text, completed: false },
 ];
 
-const removeTodoItem = (list: Todo[], id: number) => list.filter((todo) => todo.id !== id);
+type RemoveTodoItem<
+  List extends Todo[],
+  Id extends number,
+  Acc extends Todo[] = [],
+> = List extends [infer First extends Todo, ...infer Rest extends Todo[]]
+  ? First['id'] extends Id
+    ? [...Acc, ...Rest]
+    : RemoveTodoItem<Rest, Id, [...Acc, First]>
+  : Acc;
+
+const removeTodoItem = <List extends Todo[], Id extends List[number]['id']>(
+  list: List,
+  id: Id,
+): RemoveTodoItem<List, Id> =>
+  list.filter((todo) => todo.id !== id) as unknown as RemoveTodoItem<List, Id>;
 
 const findById = (list: Todo[], id: number) => list.find((todo) => todo.id === id);
 
@@ -76,3 +90,5 @@ const todos = createTodoList();
 const todos2 = addTodoItem(todos, 'qwdqw');
 const todos3 = addTodoItem(todos2, '12312');
 const todos4 = addTodoItem(todos3, 'qwdqqqwdwq');
+const todos5 = removeTodoItem(todos4, 2);
+const todos6 = addTodoItem(todos5, 'qwdqqqwdwq');
