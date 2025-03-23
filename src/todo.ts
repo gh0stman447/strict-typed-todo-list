@@ -6,15 +6,37 @@ type Todo = {
 
 const createTodoList = (): [] => [];
 
-const maxId = (list: Todo[]) => {
+const maxId = (list: Todo[]): number => {
   if (list.length === 0) return 1;
   return Math.max(...list.map(({ id }) => id)) + 1;
 };
 
+type BuildTupple<L extends number, Arr extends unknown[] = []> = L extends Arr['length']
+  ? Arr
+  : BuildTupple<L, [...Arr, unknown]>;
+
+type GreaterOrEqual<A extends number, B extends number> = BuildTupple<A> extends [
+  ...BuildTupple<B>,
+  ...infer Rest,
+]
+  ? true
+  : false;
+
+type Add<A extends number, B extends number> = [...BuildTupple<A>, ...BuildTupple<B>]['length'];
+
+type GenId<List extends Todo[], Max extends number = 0> = List extends [
+  infer First extends Todo,
+  ...infer Rest extends Todo[],
+]
+  ? GreaterOrEqual<First['id'], Max> extends true
+    ? GenId<Rest, First['id']>
+    : GenId<Rest, Max>
+  : Add<Max, 1>;
+
 type AddTodoItem<List extends Todo[], Text extends string> = [
   ...List,
   {
-    id: number;
+    id: GenId<List>;
     text: Text;
     completed: false;
   },
@@ -23,7 +45,10 @@ type AddTodoItem<List extends Todo[], Text extends string> = [
 const addTodoItem = <List extends Todo[], Text extends string>(
   list: List,
   text: Text,
-): AddTodoItem<List, Text> => [...list, { id: maxId(list), text: text, completed: false }];
+): AddTodoItem<List, Text> => [
+  ...list,
+  { id: maxId(list) as unknown as GenId<List>, text: text, completed: false },
+];
 
 const removeTodoItem = (list: Todo[], id: number) => list.filter((todo) => todo.id !== id);
 
@@ -50,4 +75,4 @@ const toggleTodo = (list: Todo[], id: number) =>
 const todos = createTodoList();
 const todos2 = addTodoItem(todos, 'qwdqw');
 const todos3 = addTodoItem(todos2, '12312');
-todos3[1].text
+const todos4 = addTodoItem(todos3, 'qwdqqqwdwq');
