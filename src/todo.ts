@@ -4,17 +4,26 @@ type Todo = {
   completed: boolean;
 };
 
-const createTodoList = (): Todo[] => [];
+const createTodoList = (): [] => [];
 
 const maxId = (list: Todo[]) => {
   if (list.length === 0) return 1;
   return Math.max(...list.map(({ id }) => id)) + 1;
 };
 
-const addTodoItem = (list: Todo[], text: string): Todo[] => [
-  ...list,
-  { id: maxId(list), text: text, completed: false },
+type AddTodoItem<List extends Todo[], Text extends string> = [
+  ...List,
+  {
+    id: number;
+    text: Text;
+    completed: false;
+  },
 ];
+
+const addTodoItem = <List extends Todo[], Text extends string>(
+  list: List,
+  text: Text,
+): AddTodoItem<List, Text> => [...list, { id: maxId(list), text: text, completed: false }];
 
 const removeTodoItem = (list: Todo[], id: number) => list.filter((todo) => todo.id !== id);
 
@@ -37,3 +46,8 @@ const toggleTodo = (list: Todo[], id: number) =>
         }
       : todo,
   );
+
+const todos = createTodoList();
+const todos2 = addTodoItem(todos, 'qwdqw');
+const todos3 = addTodoItem(todos2, '12312');
+todos3[1].text
