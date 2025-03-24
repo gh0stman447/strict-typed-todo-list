@@ -47,7 +47,7 @@ const addTodoItem = <List extends Todo[], Text extends string>(
   text: Text,
 ): AddTodoItem<List, Text> => [
   ...list,
-  { id: maxId(list) as unknown as GenId<List>, text: text, completed: false },
+  { id: maxId(list) as GenId<List>, text: text, completed: false },
 ];
 
 type RemoveTodoItem<
@@ -63,10 +63,23 @@ type RemoveTodoItem<
 const removeTodoItem = <List extends Todo[], Id extends List[number]['id']>(
   list: List,
   id: Id,
-): RemoveTodoItem<List, Id> =>
-  list.filter((todo) => todo.id !== id) as unknown as RemoveTodoItem<List, Id>;
+): RemoveTodoItem<List, Id> => list.filter((todo) => todo.id !== id) as RemoveTodoItem<List, Id>;
 
-const findById = (list: Todo[], id: number) => list.find((todo) => todo.id === id);
+type FindTodoItemById<
+  List extends Todo[],
+  Id extends List[number]['id'],
+  TodoUnion extends Todo = List[number],
+> = TodoUnion extends { id: Id } ? TodoUnion : never;
+
+type R = FindTodoItemById<
+  [{ id: 1; text: '123'; completed: false }, { id: 2; text: '13223'; completed: true }],
+  2
+>;
+
+const findById = <List extends Todo[], Id extends List[number]['id']>(
+  list: List,
+  id: Id,
+): FindTodoItemById<List, Id> => list.find((todo) => todo.id === id) as FindTodoItemById<List, Id>;
 
 const filterBy = (list: Todo[], criteria: Partial<Todo>) =>
   list.filter((todo) =>
@@ -91,4 +104,5 @@ const todos2 = addTodoItem(todos, 'qwdqw');
 const todos3 = addTodoItem(todos2, '12312');
 const todos4 = addTodoItem(todos3, 'qwdqqqwdwq');
 const todos5 = removeTodoItem(todos4, 2);
+const foundTodo = findById(todos3, 2);
 const todos6 = addTodoItem(todos5, 'qwdqqqwdwq');
