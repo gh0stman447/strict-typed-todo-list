@@ -47,7 +47,7 @@ const addTodoItem = <List extends Todo[], Text extends string>(
   text: Text,
 ): AddTodoItem<List, Text> => [
   ...list,
-  { id: maxId(list) as GenId<List>, text: text, completed: false },
+  { id: maxId(list) as unknown as GenId<List>, text: text, completed: false },
 ];
 
 type RemoveTodoItem<
@@ -81,10 +81,23 @@ const findById = <List extends Todo[], Id extends List[number]['id']>(
   id: Id,
 ): FindTodoItemById<List, Id> => list.find((todo) => todo.id === id) as FindTodoItemById<List, Id>;
 
-const filterBy = (list: Todo[], criteria: Partial<Todo>) =>
+type FilterTodoItem<
+  List extends Todo[],
+  Criteria extends Partial<Todo>,
+  Acc extends Todo[] = [],
+> = List extends [infer First extends Todo, ...infer Rest extends Todo[]]
+  ? First extends Criteria
+    ? FilterTodoItem<Rest, Criteria, [...Acc, First]>
+    : FilterTodoItem<Rest, Criteria, [...Acc]>
+  : Acc;
+
+const filterBy = <List extends Todo[], const Criteria extends Partial<Todo>>(
+  list: List,
+  criteria: Criteria,
+): FilterTodoItem<List, Criteria> =>
   list.filter((todo) =>
     Object.keys(criteria).every((key) => todo[key as keyof Todo] === criteria[key as keyof Todo]),
-  );
+  ) as FilterTodoItem<List, Criteria>;
 
 const updateTodoItem = (list: Todo[], id: number, update: Partial<Omit<Todo, 'id'>>) =>
   list.map((todo) => (todo.id === id ? { ...todo, ...update } : todo));
@@ -106,3 +119,4 @@ const todos4 = addTodoItem(todos3, 'qwdqqqwdwq');
 const todos5 = removeTodoItem(todos4, 2);
 const foundTodo = findById(todos3, 2);
 const todos6 = addTodoItem(todos5, 'qwdqqqwdwq');
+const todos7 = filterBy(todos6, { id: 2 });
